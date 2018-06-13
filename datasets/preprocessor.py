@@ -1,7 +1,7 @@
 from concurrent.futures import ProcessPoolExecutor
 from functools import partial
 from datasets import audio
-import os
+import glob, os
 import numpy as np 
 from wavenet_vocoder.util import mulaw_quantize, mulaw, is_mulaw, is_mulaw_quantize
 
@@ -29,11 +29,24 @@ def build_from_path(hparams, input_dirs, mel_dir, linear_dir, wav_dir, n_jobs=12
 	futures = []
 	index = 1
 	for input_dir in input_dirs:
-		with open(os.path.join(input_dir, 'metadata.csv'), encoding='utf-8') as f:
-			for line in f:
-				parts = line.strip().split('|')
-				wav_path = os.path.join(input_dir, 'wavs', '{}.wav'.format(parts[0]))
-				text = parts[2]
+		# trn_files = glob.glob(os.path.join(input_dir, 'xmly_record', 'A*', '*.trn'))
+		trn_files = glob.glob(os.path.join(input_dir, 'data', '*.trn'))
+		for trn in trn_files:
+			with open(trn) as f:
+				if trn[:-4].endswith('.wav'):
+					# THCHS30
+					f.readline()
+					wav_file = trn[:-4]
+				else:
+					wav_file = trn[:-4] + '.wav'
+				wav_path = wav_file
+				text = f.readline().strip()
+
+                # with open(os.path.join(input_dir, 'metadata.csv'), encoding='utf-8') as f:
+                #       for line in f:
+                #               parts = line.strip().split('|')
+                #               wav_path = os.path.join(input_dir, 'wavs', '{}.wav'.format(parts[0]))
+                #               text = parts[2]
 				futures.append(executor.submit(partial(_process_utterance, mel_dir, linear_dir, wav_dir, index, wav_path, text, hparams)))
 				index += 1
 
