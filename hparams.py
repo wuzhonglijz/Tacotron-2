@@ -87,7 +87,7 @@ hparams = tf.contrib.training.HParams(
 	mask_decoder = False, #Whether to use loss mask for padded sequences (if False, <stop_token> loss function will not be weighted, else recommended pos_weight = 20)
 
 	cross_entropy_pos_weight = 20, #Use class weights to reduce the stop token classes imbalance (by adding more penalty on False Negatives (FN)) (1 = disabled)
-	predict_linear = True, #Whether to add a post-processing network to the Tacotron to predict linear spectrograms (True mode Not tested!!)
+	predict_linear = False, #Whether to add a post-processing network to the Tacotron to predict linear spectrograms (True mode Not tested!!)
 	###########################################################################################################################################
 
 
@@ -137,8 +137,8 @@ hparams = tf.contrib.training.HParams(
 	tacotron_data_random_state=1234, #random state for train test split repeatability
 
 	tacotron_decay_learning_rate = True, #boolean, determines if the learning rate will follow an exponential decay
-	tacotron_start_decay = 50000, #Step at which learning decay starts
-	tacotron_decay_steps = 40000, #Determines the learning rate decay slope (UNDER TEST)
+	tacotron_start_decay = 20000, #Step at which learning decay starts
+	tacotron_decay_steps = 20000, #Determines the learning rate decay slope (UNDER TEST)
 	tacotron_decay_rate = 0.2, #learning rate decay rate (UNDER TEST)
 	tacotron_initial_learning_rate = 1e-3, #starting learning rate
 	tacotron_final_learning_rate = 1e-5, #minimal learning rate

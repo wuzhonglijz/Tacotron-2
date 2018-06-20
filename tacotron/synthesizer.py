@@ -27,6 +27,8 @@ class Synthesizer:
 				self.model.initialize(inputs, input_lengths)
 			self.mel_outputs = self.model.mel_outputs
 			self.alignment = self.model.alignments[0]
+			if hparams.predict_linear:
+				self.linear_outputs = self.model.linear_outputs
 
 		self.gta = gta
 		self._hparams = hparams
