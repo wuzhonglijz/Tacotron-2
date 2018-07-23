@@ -15,25 +15,25 @@ hparams = tf.contrib.training.HParams(
 
 	#Audio
 	num_mels = 80, #Number of mel-spectrogram channels and local conditioning dimensionality
-	num_freq = 513, # (= n_fft / 2 + 1) only used when adding linear spectrograms post processing network
+	num_freq = 1025, # (= n_fft / 2 + 1) only used when adding linear spectrograms post processing network
 	rescale = True, #Whether to rescale audio prior to preprocessing
 	rescaling_max = 0.999, #Rescaling value
 	trim_silence = True, #Whether to clip silence in Audio (at beginning and end of audio only, not the middle)
 	clip_mels_length = True, #For cases of OOM (Not really recommended, working on a workaround)
-	max_mel_frames = 900,  #Only relevant when clip_mels_length = True
+	max_mel_frames = 960,  #Only relevant when clip_mels_length = True
 
 	# Use LWS (https://github.com/Jonathan-LeRoux/lws) for STFT and phase reconstruction
 	# It's preferred to set True to use with https://github.com/r9y9/wavenet_vocoder
 	# Does not work if n_ffit is not multiple of hop_size!!
-	use_lws=True,
+	use_lws=False,
 	silence_threshold=2, #silence threshold used for sound trimming for wavenet preprocessing
 
 	#Mel spectrogram
-	n_fft = 1024, #Extra window size is filled with 0 paddings to match this parameter
-	hop_size = 256, #For 22050Hz, 275 ~= 12.5 ms
+	n_fft = 2048, #Extra window size is filled with 0 paddings to match this parameter
+	hop_size = None, #For 22050Hz, 275 ~= 12.5 ms
 	win_size = None, #For 22050Hz, 1100 ~= 50 ms (If None, win_size = n_fft)
-	sample_rate = 16000, #22050 Hz (corresponding to ljspeech dataset)
-	frame_shift_ms = None,
+	sample_rate = 22050, #22050 Hz (corresponding to ljspeech dataset)
+	frame_shift_ms = 12.5,
 
 	#M-AILABS (and other datasets) trim params
 	trim_fft_size = 512,
@@ -53,7 +53,7 @@ hparams = tf.contrib.training.HParams(
 	fmax = 7600, 
 
 	#Griffin Lim
-	power = 1.2, 
+	power = 1.55,
 	griffin_lim_iters = 60,
 	###########################################################################################################################################
 
@@ -87,7 +87,7 @@ hparams = tf.contrib.training.HParams(
 	mask_decoder = False, #Whether to use loss mask for padded sequences (if False, <stop_token> loss function will not be weighted, else recommended pos_weight = 20)
 
 	cross_entropy_pos_weight = 20, #Use class weights to reduce the stop token classes imbalance (by adding more penalty on False Negatives (FN)) (1 = disabled)
-	predict_linear = False, #Whether to add a post-processing network to the Tacotron to predict linear spectrograms (True mode Not tested!!)
+	predict_linear = True, #Whether to add a post-processing network to the Tacotron to predict linear spectrograms (True mode Not tested!!)
 	###########################################################################################################################################
 
 
@@ -133,7 +133,7 @@ hparams = tf.contrib.training.HParams(
 	tacotron_scale_regularization = True, #Whether to rescale regularization weight to adapt for outputs range (used when reg_weight is high and biasing the model)
 
 	tacotron_test_size = None, #% of data to keep as test data, if None, tacotron_test_batches must be not None
-	tacotron_test_batches = 48, #number of test batches (For Ljspeech: 10% ~= 41 batches of 32 samples)
+	tacotron_test_batches = 32, #number of test batches (For Ljspeech: 10% ~= 41 batches of 32 samples)
 	tacotron_data_random_state=1234, #random state for train test split repeatability
 
 	tacotron_decay_learning_rate = True, #boolean, determines if the learning rate will follow an exponential decay

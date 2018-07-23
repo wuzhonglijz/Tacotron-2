@@ -41,6 +41,7 @@ def get_hop_size(hparams):
 	if hop_size is None:
 		assert hparams.frame_shift_ms is not None
 		hop_size = int(hparams.frame_shift_ms / 1000 * hparams.sample_rate)
+		hparams.win_size = hop_size * 4
 	return hop_size
 
 def linearspectrogram(wav, hparams):
