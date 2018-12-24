@@ -1,4 +1,4 @@
-import glob, os
+import glob, os, re
 from concurrent.futures import ProcessPoolExecutor
 from functools import partial
 
@@ -23,6 +23,7 @@ def segment(zhText,pinyinText):
 			result += " "
 	return result
 
+
 def build_from_path(hparams, input_dirs, mel_dir, linear_dir, wav_dir, n_jobs=12, tqdm=lambda x: x):
 	"""
 	Preprocesses the speech dataset from a gven input path to given output directories
@@ -46,30 +47,27 @@ def build_from_path(hparams, input_dirs, mel_dir, linear_dir, wav_dir, n_jobs=12
 	futures = []
 	index = 1
 	for input_dir in input_dirs:
-		#trn_files = glob.glob(os.path.join(input_dir, "data", 'A*', '*.trn'))
-		trn_files = glob.glob(os.path.join(input_dir, "data", 'A*.*.trn'))
+		modify_BZNSYP(input_dir)
+		trn_files = glob.glob(os.path.join(input_dir, 'Trn', '*.trn'))
 		for trn in trn_files:
 			with open(trn,encoding='utf-8') as f:
 				basename = trn[:-4]
 				text = None
-				if basename.endswith('.wav'):
-					# THCHS30
-					zhText = f.readline()
-					pinyinText = f.readline()
-					text = segment(zhText, pinyinText)
-					wav_file = basename
-				else:
-					wav_file = basename + '.wav'
-				wav_path = wav_file
+				zhText = f.readline()
+				pinyinText = f.readline()
+				text = segment(zhText, pinyinText)
 				basename = basename.split('/')[-1]
+				wav_file = os.path.join(input_dir, 'Wave', basename + '.wav')
+				wav_path = wav_file
+				
 				text = text if text != None else f.readline().strip()
 
+				# For windows
 				mel_dir = replace(mel_dir)
 				linear_dir = replace(linear_dir)
 				wav_dir = replace(wav_dir)
 				wav_path = replace(wav_path)
 				basename = replace(basename)
-
 				futures.append(executor.submit(partial(_process_utterance, mel_dir, linear_dir, wav_dir, basename, wav_path, text, hparams)))
 				index += 1
 
@@ -193,3 +191,28 @@ def _process_utterance(mel_dir, linear_dir, wav_dir, index, wav_path, text, hpar
 
 	# Return a tuple describing this training example
 	return (audio_filename, mel_filename, linear_filename, time_steps, mel_frames, text)
+
+def modify_BZNSYP(input_dir):
+	labels_file = glob.glob(os.path.join(input_dir, "ProsodyLabeling", '*.txt'))
+	os.makedirs(os.path.join(input_dir, 'Trn'), exist_ok=True)
+	temp_list = []
+	with open (labels_file[0], encoding='gbk') as lines:
+		flag = 0
+		basename = ''
+		for line in lines:
+			
+			if flag == 0:
+				basename = line[:6]
+				zhText = line[7:]
+				temp_list.append(zhText)
+				flag =  1
+			elif flag == 1:
+				pinyinText = line.strip()
+				temp_list.append(pinyinText)
+				trn_path = os.path.join(input_dir, 'Trn', basename +'.trn')
+				with open(os.path.join(input_dir, 'Trn', basename +'.trn'), 'w+') as trn_file:
+						for data in temp_list:
+							trn_file.write(data)
+						
+				flag = 0
+				temp_list = []
