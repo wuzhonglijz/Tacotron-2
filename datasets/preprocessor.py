@@ -204,6 +204,7 @@ def modify_BZNSYP(input_dir):
 			if flag == 0:
 				basename = line[:6]
 				zhText = line[7:]
+				zhText = re.sub(r'#\d',' ',zhText)
 				temp_list.append(zhText)
 				flag =  1
 			elif flag == 1:

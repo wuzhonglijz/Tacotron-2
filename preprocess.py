@@ -14,7 +14,9 @@ def preprocess(args, input_folders, out_dir, hparams):
 	os.makedirs(mel_dir, exist_ok=True)
 	os.makedirs(wav_dir, exist_ok=True)
 	os.makedirs(linear_dir, exist_ok=True)
-	metadata = preprocessor.build_from_path(hparams, input_folders, mel_dir, linear_dir, wav_dir, args.n_jobs, tqdm=tqdm)
+	metadata = preprocessor.build_from_path(
+		hparams, input_folders, mel_dir, linear_dir, wav_dir, args.n_jobs, tqdm=tqdm)
+	print(metadata)
 	write_metadata(metadata, out_dir)
 
 def write_metadata(metadata, out_dir):
@@ -36,10 +38,13 @@ def norm_data(args):
 	merge_books = (args.merge_books=='True')
 
 	print('Selecting data folders..')
-	supported_datasets = ['LJSpeech-1.0', 'LJSpeech-1.1', 'M-AILABS', 'THCHS-30']
+	supported_datasets = ['LJSpeech-1.0', 'LJSpeech-1.1', 'M-AILABS', 'THCHS-30', 'BZNSYP']
 	if args.dataset not in supported_datasets:
 		raise ValueError('dataset value entered {} does not belong to supported datasets: {}'.format(
 			args.dataset, supported_datasets))
+
+	if args.dataset.startswith('BZNSYP'):
+		return [os.path.join(args.base_dir, 'BZNSYP')]
 
 	if args.dataset.startswith('LJSpeech'):
 		return [os.path.join(args.base_dir, args.dataset)]
@@ -79,7 +84,7 @@ def norm_data(args):
 
 
 def run_preprocess(args, hparams):
-	input_folders = norm_data(args)
+	input_folders = norm_data(args) # attach dataset name
 	output_folder = os.path.join(args.base_dir, args.output)
 
 	preprocess(args, input_folders, output_folder, hparams)
@@ -91,7 +96,7 @@ def main():
 	parser.add_argument('--base_dir', default='')
 	parser.add_argument('--hparams', default='',
 		help='Hyperparameter overrides as a comma-separated list of name=value pairs')
-	parser.add_argument('--dataset', default='THCHS-30')
+	parser.add_argument('--dataset', default='BZNSYP')
 	parser.add_argument('--language', default='en_US')
 	parser.add_argument('--voice', default='female')
 	parser.add_argument('--reader', default='mary_ann')
